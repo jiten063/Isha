@@ -3,61 +3,46 @@ import json
 import base64
 from flask import Flask, request, jsonify
 from datetime import datetime
+import random
+
+# --- Firebase Admin SDK Setup ---
+# This is the standard, secure way for a backend server to access Firebase.
+# It requires the service account key to be set as an environment variable in Vercel.
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# --- App Initialization ---
-app = Flask(__name__)
-
-# --- Securely Connect to Firestore Database ---
-# This connection logic remains the same.
+db = None
 try:
     encoded_creds = os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY_BASE64')
     if not encoded_creds:
-        raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 env var not set.")
+        raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 environment variable not set.")
+    
     decoded_creds_json = base64.b64decode(encoded_creds).decode('utf-8')
     creds_dict = json.loads(decoded_creds_json)
     cred = credentials.Certificate(creds_dict)
+    
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
-    print("Firebase initialized successfully.")
-except Exception as e:
-    print(f"Error initializing Firebase: {e}")
-
-# --- Pillar 2 & 3: Dynamic Environment & Temporal Data Simulation ---
-def get_dynamic_environmental_data(district):
-    """
-    Simulates real-time environmental and temporal data.
-    In a real system, this would fetch data from live APIs (weather, AQI, etc.).
-    """
-    # Using the specified time: Saturday, Sep 13, 2025, ~5:18 PM
-    now = datetime(2025, 9, 13, 17, 18)
     
-    # Base data for Lucknow in mid-September
-    data = {
-        "timestamp": now.isoformat(),
-        "season": "Post-Monsoon",
-        "weeks_since_monsoon_peak": 4,
-        "days_since_last_rain": 4, # Simulating light rain on Tuesday
-        "hour_of_day": now.hour,
-        "aqi": 110, # Moderate AQI for Lucknow in Sep
-        "temperature_c": 29,
-        "local_vector_index": 28, # High Container Index
-        "local_outbreak_alert": "Dengue", # Active alert
-    }
+    db = firestore.client()
+    print("Firebase Admin SDK initialized successfully.")
+except Exception as e:
+    print(f"FATAL: Could not initialize Firebase Admin SDK: {e}")
+# --- End Firebase Setup ---
 
-    # District-specific overrides
-    if district in ["Ghaziabad", "Noida", "Kanpur Nagar"]:
-        data["aqi"] = 150 # Higher baseline pollution
-    if district == "Gorakhpur":
-        data["local_outbreak_alert"] = "AES"
 
-    return data
+app = Flask(__name__)
 
 # --- Helper Functions for Scoring ---
 def get_age(dob_str):
-    if not dob_str: return 30 # Default age
-    return (datetime.now().year - datetime.strptime(dob_str, '%Y-%m-%d').year)
+    if not dob_str: return 30
+    try:
+        today = datetime.now()
+        birth_date = datetime.strptime(dob_str, '%Y-%m-%d')
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        return age
+    except:
+        return 30 # Return default if date format is wrong
 
 def get_age_group(age):
     if age <= 5: return "0-5"
@@ -66,174 +51,113 @@ def get_age_group(age):
     if age <= 60: return "41-60"
     return ">60"
 
-# --- Disease-Specific Risk Calculators ---
+# --- Dynamic Data Simulation ---
+def get_dynamic_environmental_data(district):
+    now = datetime(2025, 9, 13, 17, 18)
+    data = {
+        "timestamp": now.isoformat(), "season": "Post-Monsoon",
+        "weeks_since_monsoon_peak": 4, "days_since_last_rain": 4,
+        "hour_of_day": now.hour, "aqi": 110, "temperature_c": 29,
+        "local_vector_index": 28, "local_outbreak_alert": "Dengue",
+    }
+    if district in ["Ghaziabad", "Noida", "Kanpur Nagar"]: data["aqi"] = 150
+    if district == "Gorakhpur": data["local_outbreak_alert"] = "AES"
+    return data
 
+# --- Disease-Specific Risk Calculators ---
 def calculate_dengue_risk(profile, env_data):
-    """Calculates the UPSDRI score for Dengue Fever."""
-    score_card = []
+    core = profile.get('core', {})
+    lifestyle = profile.get('lifestyle', {})
+    age = get_age(core.get('dob'))
+    age_group = get_age_group(age)
     total_score = 0
     
-    core = profile.get('core', {})
-    lifestyle = profile.get('lifestyle', {})
-    age = get_age(core.get('dob'))
-    age_group = get_age_group(age)
-
-    # Parameter: Age Group
-    weights = {"6-15": 3, "16-40": 2, ">60": 4} # Children and elderly are more vulnerable
+    weights = {"6-15": 3, "16-40": 2, ">60": 4}
     scores = {"6-15": 7, "16-40": 5, ">60": 6}
-    weight = weights.get(age_group, 1)
-    score = scores.get(age_group, 3)
-    score_card.append({"param": "Age Group", "value": age_group, "score": weight * score})
-
-    # Parameter: Location (Urban vs Rural - simple proxy)
-    urban_districts = ["Lucknow", "Kanpur Nagar", "Ghaziabad", "Gautam Buddh Nagar", "Varanasi", "Prayagraj", "Meerut", "Agra"]
-    is_urban = core.get('district') in urban_districts
-    weight = 5
-    score = 8 if is_urban else 4
-    score_card.append({"param": "Location", "value": "Urban" if is_urban else "Rural", "score": weight * score})
-
-    # Parameter: Weeks Since Monsoon Peak
-    weight = 5
-    score = min(10, env_data["weeks_since_monsoon_peak"] * 2) # Score peaks 3-5 weeks post-monsoon
-    score_card.append({"param": "Weeks Since Monsoon Peak", "value": env_data["weeks_since_monsoon_peak"], "score": weight * score})
-
-    # Parameter: Water Stagnation Index
-    weight = 5
-    score = min(10, env_data["days_since_last_rain"] * 2)
-    score_card.append({"param": "Days Since Rain", "value": env_data["days_since_last_rain"], "score": weight * score})
-
-    # Parameter: Hour of Day (Aedes mosquito is a day biter, peaks at dawn/dusk)
-    weight = 3
-    hour = env_data["hour_of_day"]
-    score = 8 if (5 <= hour <= 9) or (16 <= hour <= 19) else 3
-    score_card.append({"param": "Time of Day", "value": f"{hour}:00", "score": weight * score})
-
-    # Parameter: Local Vector Index
-    weight = 5
-    score = env_data["local_vector_index"] / 4 # Scale 0-100 index to 0-10 score
-    score_card.append({"param": "Vector Index", "value": f"{env_data['local_vector_index']}%", "score": weight * score})
+    total_score += (weights.get(age_group, 1)) * (scores.get(age_group, 3))
     
-    # Parameter: Co-morbidities
-    if "Diabetes" in lifestyle.get('conditions', []):
-        score_card.append({"param": "Co-morbidity", "value": "Diabetes", "score": 40}) # High penalty
+    urban_districts = ["Lucknow", "Kanpur Nagar", "Ghaziabad", "Gautam Buddh Nagar", "Varanasi", "Prayagraj", "Meerut", "Agra"]
+    total_score += 5 * (8 if core.get('district') in urban_districts else 4)
+    total_score += 5 * min(10, env_data["weeks_since_monsoon_peak"] * 2)
+    total_score += 5 * min(10, env_data["days_since_last_rain"] * 2)
+    hour = env_data["hour_of_day"]
+    total_score += 3 * (8 if (5 <= hour <= 9) or (16 <= hour <= 19) else 3)
+    total_score += 5 * (env_data["local_vector_index"] / 4)
+    if "Diabetes" in lifestyle.get('conditions', []): total_score += 40
 
-    # Calculate final score and level
-    total_score = sum(item['score'] for item in score_card)
-    if total_score > 300: level = "VERY HIGH"
-    elif total_score > 200: level = "HIGH"
-    elif total_score > 100: level = "MODERATE"
-    else: level = "LOW"
-
-    return {
-        "disease": "Dengue Fever",
-        "score": total_score,
-        "level": level,
-        "details": score_card
-    }
+    level = "LOW"
+    if total_score > 200: level = "High"
+    elif total_score > 100: level = "Moderate"
+    
+    return {"threat": "Dengue Fever Spike", "level": level, "action": "Apply mosquito repellent (DEET 20%) morning + evening."}
 
 def calculate_respiratory_risk(profile, env_data):
-    """Calculates the UPSDRI score for Respiratory Illness."""
-    score_card = []
-    
-    core = profile.get('core', {})
     lifestyle = profile.get('lifestyle', {})
-    age = get_age(core.get('dob'))
+    age = get_age(profile.get('core', {}).get('dob'))
     age_group = get_age_group(age)
-
-    # Parameter: Air Quality Index (AQI)
-    weight = 5
+    total_score = 0
     aqi = env_data["aqi"]
-    if aqi > 300: score = 10
-    elif aqi > 200: score = 8
-    elif aqi > 100: score = 6
-    else: score = 3
-    score_card.append({"param": "AQI", "value": aqi, "score": weight * score})
-    
-    # Parameter: Age Group
-    weights = {">60": 5, "0-5": 4}
-    scores = {">60": 9, "0-5": 8}
-    weight = weights.get(age_group, 2)
-    score = scores.get(age_group, 4)
-    score_card.append({"param": "Age Group", "value": age_group, "score": weight * score})
-
-    # Parameter: Co-morbidities (Asthma/COPD is a huge multiplier)
-    if "Asthma/COPD" in lifestyle.get('conditions', []):
-        score_card.append({"param": "Co-morbidity", "value": "Asthma/COPD", "score": 80})
-
-    # Parameter: Occupation
+    if aqi > 300: aqi_score = 10
+    elif aqi > 200: aqi_score = 8
+    elif aqi > 100: aqi_score = 6
+    else: aqi_score = 3
+    total_score += 5 * aqi_score
+    weights = {">60": 5, "0-5": 4}; scores = {">60": 9, "0-5": 8}
+    total_score += (weights.get(age_group, 2)) * (scores.get(age_group, 4))
+    if "Asthma/COPD" in lifestyle.get('conditions', []): total_score += 80
     high_risk_jobs = ["Construction Worker", "Factory Worker", "Miner"]
-    if lifestyle.get('occupation') in high_risk_jobs:
-         score_card.append({"param": "Occupation", "value": lifestyle.get('occupation'), "score": 30})
-    
-    # Calculate final score and level
-    total_score = sum(item['score'] for item in score_card)
-    if total_score > 250: level = "VERY HIGH"
-    elif total_score > 150: level = "HIGH"
-    elif total_score > 75: level = "MODERATE"
-    else: level = "LOW"
+    if lifestyle.get('occupation') in high_risk_jobs: total_score += 30
+    level = "LOW"
+    if total_score > 150: level = "High"
+    elif total_score > 75: level = "Moderate"
+    return {"threat": "Seasonal Influenza Surge", "level": level, "action": "Wear mask in crowded indoor areas."}
 
-    return {
-        "disease": "Respiratory Illness",
-        "score": total_score,
-        "level": level,
-        "details": score_card
-    }
+def generate_disease_trends(district):
+    def create_trend(): return [random.randint(20, 100) for _ in range(15)]
+    return [
+        {"disease": "Dengue", "cases": create_trend()}, {"disease": "Malaria", "cases": create_trend()},
+        {"disease": "Typhoid", "cases": create_trend()}, {"disease": "Viral Fever", "cases": create_trend()}
+    ]
 
-# --- The Core Logic: The "Brain" ---
-def analyze_risk(profile):
-    """
-    Main analysis engine. Runs profile data through all relevant disease models.
-    """
-    district = profile.get('core', {}).get('district', 'Lucknow')
-    # 1. Get real-time environmental data
-    env_data = get_dynamic_environmental_data(district)
-    
-    # 2. Run all disease risk calculators
-    dengue_analysis = calculate_dengue_risk(profile, env_data)
-    respiratory_analysis = calculate_respiratory_risk(profile, env_data)
-    
-    # 3. Compile and return results
-    return {
-        "environmental_conditions": env_data,
-        "risk_assessments": [dengue_analysis, respiratory_analysis]
-    }
-
-
-# --- API Endpoints ---
-@app.route('/api/profile', methods=['POST'])
-def save_profile():
-    # This function remains unchanged
-    try:
-        profile_data = request.json
-        db = firestore.client()
-        user_name = profile_data.get('core', {}).get('name', 'unknown_user')
-        doc_ref = db.collection('userProfiles').document(user_name.replace(" ", "_").lower())
-        doc_ref.set(profile_data)
-        return jsonify({"status": "success", "message": "Profile saved successfully!"}), 201
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+# --- Main API Endpoint ---
 @app.route('/api/predict', methods=['POST'])
 def get_prediction():
-    # This function now calls the new, powerful 'analyze_risk' engine
-    try:
-        user_name = request.json.get('name')
-        if not user_name: return jsonify({"status": "error", "message": "User name is required."}), 400
-        
-        db = firestore.client()
-        doc_ref = db.collection('userProfiles').document(user_name.replace(" ", "_").lower())
-        profile = doc_ref.get()
+    if not db:
+        return jsonify({"message": "Error: The backend database connection is not configured."}), 500
 
-        if not profile.exists: return jsonify({"status": "error", "message": "Profile not found."}), 404
+    try:
+        data = request.json
+        user_id = data.get('userId')
+        if not user_id:
+            return jsonify({"message": "User ID was not provided in the request."}), 400
+
+        # Fetch the user's profile from Firestore using the provided userId
+        doc_ref = db.collection('userProfiles').doc(user_id)
+        profile_doc = doc_ref.get()
+        if not profile_doc.exists:
+            return jsonify({"message": f"No profile found for user ID: {user_id}"}), 404
         
-        profile_data = profile.to_dict()
+        profile_data = profile_doc.to_dict()
+        district = profile_data.get('core', {}).get('district')
+        env_data = get_dynamic_environmental_data(district)
         
-        # Run the new analysis engine
-        predictions = analyze_risk(profile_data)
+        dengue = calculate_dengue_risk(profile_data, env_data)
+        respiratory = calculate_respiratory_risk(profile_data, env_data)
+        gastro = {"threat": "Acute Gastroenteritis", "level": "Moderate", "action": "Drink only boiled/RO water."}
         
-        return jsonify(predictions), 200
+        risk_assessments = sorted(
+            [r for r in [dengue, respiratory, gastro] if r['level'] != 'LOW'],
+            key=lambda x: ({"High": 1, "Moderate": 2}.get(x['level'], 3))
+        )
+        
+        response = {
+            "risk_assessments": risk_assessments,
+            "disease_trends": generate_disease_trends(district)
+        }
+        
+        return jsonify(response), 200
 
     except Exception as e:
-        print(f"Error during prediction: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"ERROR in /api/predict: {e}")
+        return jsonify({"message": f"An internal server error occurred: {e}"}), 500
 
