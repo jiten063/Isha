@@ -49,6 +49,11 @@
         </nav>
 
         <main>
+            <!-- Error Message Display -->
+            <div id="error-container" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-xl mb-6" role="alert">
+                 <p id="error-text"></p>
+            </div>
+
             <form id="profile-form" class="space-y-8">
                 <!-- Section 1: Core Profile -->
                 <div class="form-section border p-4 sm:p-6 rounded-xl">
@@ -158,6 +163,10 @@
             // --- Form Submission ---
             document.getElementById('profile-form').addEventListener('submit', async function(event) {
                 event.preventDefault();
+                
+                // Hide previous error messages
+                document.getElementById('error-container').classList.add('hidden');
+                
                 const submitButton = document.getElementById('submit-button');
                 submitButton.disabled = true;
                 submitButton.textContent = 'Saving...';
@@ -184,7 +193,10 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(profileData)
                     });
-                    if (!response.ok) throw new Error('Failed to save profile.');
+                    if (!response.ok) {
+                         const errorData = await response.json();
+                         throw new Error(errorData.message || 'Failed to save profile.');
+                    }
 
                     // Save key info to localStorage for the dashboard
                     localStorage.setItem('sentinelUserName', coreProfile.name);
@@ -193,12 +205,20 @@
                     window.location.href = 'index.html'; // Redirect to new dashboard homepage
 
                 } catch (error) {
-                    alert('Error saving profile: ' + error.message);
+                    showError(error.message);
                     submitButton.disabled = false;
                     submitButton.textContent = 'Save Profile & View Dashboard';
                 }
             });
         });
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = `Error: ${message}. Please check your connection or try again. If the problem persists, the backend service may be unavailable.`;
+            errorContainer.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
+
