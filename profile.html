@@ -121,12 +121,8 @@
         const conditions = ["Diabetes", "Hypertension", "Asthma/COPD", "Heart Disease", "Kidney Disease", "Anaemia", "Thyroid Disorder", "Arthritis", "None of the above"];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Populate dropdowns and checkboxes
             populateFormOptions();
-            
-            // NEW: Load existing profile from local storage
             loadProfileFromCache();
-            
             setupEventListeners();
         });
         
@@ -148,7 +144,6 @@
         }
 
         function setupEventListeners() {
-            // "None of the above" logic
             const noneCheckbox = document.getElementById('none-of-the-above');
             const allConditionCheckboxes = document.querySelectorAll('.condition-checkbox');
             noneCheckbox.addEventListener('change', () => {
@@ -164,13 +159,11 @@
                 }
             });
 
-            // Navigation Toggle
             const navToggle = document.getElementById('nav-toggle');
             const navMenu = document.getElementById('nav-menu');
             navToggle.addEventListener('click', (e) => { e.stopPropagation(); navMenu.classList.toggle('hidden'); });
             document.addEventListener('click', (e) => { if (!navMenu.classList.contains('hidden') && !navMenu.contains(e.target) && !navToggle.contains(e.target)) { navMenu.classList.add('hidden'); } });
 
-            // Form Submission
             document.getElementById('profile-form').addEventListener('submit', handleFormSubmit);
         }
 
@@ -201,16 +194,11 @@
 
                 const profileData = { core: coreProfile, lifestyle: lifestyleProfile };
                 
-                // NEW SAVE LOGIC: Save to localStorage (browser cache)
+                // SAVE LOGIC: Saves to localStorage (browser cache)
                 localStorage.setItem('sentinelUserProfile', JSON.stringify(profileData));
-                
-                // Keep these for the dashboard to easily access them
-                localStorage.setItem('sentinelUserName', coreProfile.name);
-                localStorage.setItem('sentinelUserDistrict', coreProfile.district);
                 
                 showSuccess("Profile saved successfully!");
 
-                // Redirect after a short delay
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
@@ -228,23 +216,26 @@
                 const profileData = JSON.parse(savedProfile);
                 const form = document.getElementById('profile-form');
 
-                // Populate core profile
                 form.name.value = profileData.core.name || '';
                 form.dob.value = profileData.core.dob || '';
-                // Match the full string for the dropdown
                 Array.from(form.sex.options).forEach(opt => {
-                    if (opt.value.startsWith(profileData.core.sex)) {
-                        form.sex.value = opt.value;
-                    }
+                    if (opt.value.startsWith(profileData.core.sex)) form.sex.value = opt.value;
                 });
                 form.district.value = profileData.core.district || 'Lucknow';
-                
-                // Populate lifestyle profile
                 form.occupation.value = profileData.lifestyle.occupation || 'Student';
-                profileData.lifestyle.conditions.forEach(condition => {
-                    const checkbox = document.querySelector(`input[value="${condition}"]`);
-                    if (checkbox) checkbox.checked = true;
-                });
+
+                const noneCheckbox = document.getElementById('none-of-the-above');
+                if (profileData.lifestyle.conditions.length > 0) {
+                    profileData.lifestyle.conditions.forEach(condition => {
+                        const checkbox = document.querySelector(`input[value="${condition}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                } else {
+                    noneCheckbox.checked = true;
+                    document.querySelectorAll('.condition-checkbox').forEach(cb => {
+                         if (cb !== noneCheckbox) cb.disabled = true;
+                    });
+                }
             }
         }
 
@@ -256,7 +247,7 @@
 
         function showError(message) {
             const errorContainer = document.getElementById('error-container');
-            errorText.textContent = `Error: ${message}.`;
+            document.getElementById('error-text').textContent = `Error: ${message}.`;
             errorContainer.classList.remove('hidden');
         }
 
