@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Health Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-section {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Create Your Health Profile</h1>
+            <p class="text-md text-gray-600 mt-2">Start with the essentials to receive district-level health alerts.</p>
+        </header>
+
+        <main class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <form id="user-profile-form">
+
+                <!-- Section 1: Core Profile -->
+                <section class="form-section">
+                    <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">Section 1: Core Profile (अनिवार्य)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Name (नाम)</label>
+                            <input type="text" id="name" name="name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your name" required>
+                        </div>
+                        <div>
+                            <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth (जन्म तिथि)</label>
+                            <input type="date" id="dob" name="dob" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="sex" class="block text-sm font-medium text-gray-700">Sex (लिंग)</label>
+                            <select id="sex" name="sex" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="Male">Male / पुरुष</option>
+                                <option value="Female">Female / महिला</option>
+                                <option value="Other">Other / अन्य</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="district" class="block text-sm font-medium text-gray-700">District (जनपद)</label>
+                            <select id="district" name="district" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="" disabled selected>-- Select Your District --</option>
+                                <!-- Dr. Sentinel's Key Districts -->
+                                <option value="Gorakhpur">Gorakhpur</option>
+                                <option value="Bulandshahr">Bulandshahr</option>
+                                <option value="Lalitpur">Lalitpur</option>
+                                <option value="Kanpur Nagar">Kanpur Nagar</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <!-- Add all 75 UP districts here -->
+                                <option value="Agra">Agra</option>
+                                <option value="Varanasi">Varanasi</option>
+                                <option value="Meerut">Meerut</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Lifestyle Profile -->
+                <section class="form-section">
+                    <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">Section 2: Lifestyle Profile (वैकल्पिक - बेहतर सुझावों के लिए)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation (व्यवसाय)</label>
+                            <select id="occupation" name="occupation" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="" selected>-- Not specified --</option>
+                                <option value="Student">Student / छात्र</option>
+                                <option value="Farmer">Farmer / किसान</option>
+                                <option value="Construction">Construction / भवन निर्माण श्रमिक</option>
+                                <option value="Factory Worker">Factory Worker / फैक्ट्री कर्मचारी</option>
+                                <option value="Miner">Miner / खनिक</option>
+                                <option value="Government Service">Government Service / सरकारी नौकरी</option>
+                                <option value="Private Service">Private Service / प्राइवेट नौकरी</option>
+                                <option value="Business Owner">Business Owner / व्यवसायी</option>
+                                <option value="Homemaker">Homemaker / गृहिणी</option>
+                                <option value="Unemployed">Unemployed / बेरोजगार</option>
+                                <option value="Other">Other / अन्य</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pre-existing Conditions (पहले से मौजूद बीमारियाँ)</label>
+                            <div class="mt-2 space-y-2 p-3 border border-gray-200 rounded-md max-h-32 overflow-y-auto">
+                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Diabetes" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Diabetes</label>
+                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Hypertension" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Hypertension</label>
+                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Asthma/COPD" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Asthma/COPD</label>
+                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Heart Disease" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Heart Disease</label>
+                                <label class="flex items-center"><input type="checkbox" name="conditions" value="None" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> None</option>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dr. Sentinel's Note -->
+                <div class="mt-8 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md">
+                    <h4 class="font-bold text-indigo-800">A Note from Dr. UP Sentinel on Location:</h4>
+                    <p class="mt-2 text-sm text-indigo-700">"I've designed the initial setup to require only your district. This immediately provides you with valuable, region-specific health forecasts. However, diseases do not respect district boundaries; they cluster in specific blocks and villages. By optionally adding your Block and Village later in your profile, you upgrade your alerts from a district forecast to a personal, hyper-local warning system. This level of precision saves lives."</p>
+                </div>
+
+
+                <div class="mt-8 text-center">
+                    <button type="submit" id="save-btn" class="w-full md:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300">
+                        Save Profile
+                    </button>
+                </div>
+            </form>
+            
+            <div id="success-message" class="mt-6 p-4 bg-green-100 text-green-800 border border-green-200 rounded-lg text-center hidden">
+                Profile data saved successfully!
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const profileForm = document.getElementById('user-profile-form');
+        const saveBtn = document.getElementById('save-btn');
+        const successMessage = document.getElementById('success-message');
+
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            // 1. Collect form data
+            const formData = new FormData(profileForm);
+            
+            const profileData = {
+                core: {
+                    name: formData.get('name'),
+                    dob: formData.get('dob'),
+                    sex: formData.get('sex'),
+                    district: formData.get('district')
+                },
+                lifestyle: {
+                    occupation: formData.get('occupation'),
+                    conditions: formData.getAll('conditions') // Gets all checked conditions
+                }
+            };
+
+            // In a real application, you would send this to a database.
+            // For now, we'll log it to the console to show it works.
+            console.log("--- Collected User Profile Data ---");
+            console.log(JSON.stringify(profileData, null, 2));
+
+            // Simulate a network request
+            setTimeout(() => {
+                // Restore button and show success message
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Profile';
+                successMessage.classList.remove('hidden');
+
+                // Hide the message after 3 seconds
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 3000);
+
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+
