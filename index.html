@@ -3,173 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Health Profile</title>
+    <title>UP Health Sentinel - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .form-section {
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: black; /* Changed to black */
+            color: #e2e8f0; /* slate-200 */
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="min-h-screen">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-3xl">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Create Your Health Profile</h1>
-            <p class="text-md text-gray-600 mt-2">Start with the essentials to receive district-level health alerts.</p>
-        </header>
-
-        <main class="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <form id="user-profile-form">
-
-                <!-- Section 1: Core Profile -->
-                <section class="form-section">
-                    <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">Section 1: Core Profile (अनिवार्य)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">Name (नाम)</label>
-                            <input type="text" id="name" name="name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your name" required>
-                        </div>
-                        <div>
-                            <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth (जन्म तिथि)</label>
-                            <input type="date" id="dob" name="dob" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                        </div>
-                        <div>
-                            <label for="sex" class="block text-sm font-medium text-gray-700">Sex (लिंग)</label>
-                            <select id="sex" name="sex" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                                <option value="Male">Male / पुरुष</option>
-                                <option value="Female">Female / महिला</option>
-                                <option value="Other">Other / अन्य</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="district" class="block text-sm font-medium text-gray-700">District (जनपद)</label>
-                            <select id="district" name="district" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                                <option value="" disabled selected>-- Select Your District --</option>
-                                <!-- Dr. Sentinel's Key Districts -->
-                                <option value="Gorakhpur">Gorakhpur</option>
-                                <option value="Bulandshahr">Bulandshahr</option>
-                                <option value="Lalitpur">Lalitpur</option>
-                                <option value="Kanpur Nagar">Kanpur Nagar</option>
-                                <option value="Lucknow">Lucknow</option>
-                                <!-- Add all 75 UP districts here -->
-                                <option value="Agra">Agra</option>
-                                <option value="Varanasi">Varanasi</option>
-                                <option value="Meerut">Meerut</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 2: Lifestyle Profile -->
-                <section class="form-section">
-                    <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6">Section 2: Lifestyle Profile (वैकल्पिक - बेहतर सुझावों के लिए)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation (व्यवसाय)</label>
-                            <select id="occupation" name="occupation" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="" selected>-- Not specified --</option>
-                                <option value="Student">Student / छात्र</option>
-                                <option value="Farmer">Farmer / किसान</option>
-                                <option value="Construction">Construction / भवन निर्माण श्रमिक</option>
-                                <option value="Factory Worker">Factory Worker / फैक्ट्री कर्मचारी</option>
-                                <option value="Miner">Miner / खनिक</option>
-                                <option value="Government Service">Government Service / सरकारी नौकरी</option>
-                                <option value="Private Service">Private Service / प्राइवेट नौकरी</option>
-                                <option value="Business Owner">Business Owner / व्यवसायी</option>
-                                <option value="Homemaker">Homemaker / गृहिणी</option>
-                                <option value="Unemployed">Unemployed / बेरोजगार</option>
-                                <option value="Other">Other / अन्य</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Pre-existing Conditions (पहले से मौजूद बीमारियाँ)</label>
-                            <div class="mt-2 space-y-2 p-3 border border-gray-200 rounded-md max-h-32 overflow-y-auto">
-                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Diabetes" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Diabetes</label>
-                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Hypertension" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Hypertension</label>
-                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Asthma/COPD" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Asthma/COPD</label>
-                                <label class="flex items-center"><input type="checkbox" name="conditions" value="Heart Disease" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> Heart Disease</label>
-                                <label class="flex items-center"><input type="checkbox" name="conditions" value="None" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"> None</option>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Dr. Sentinel's Note -->
-                <div class="mt-8 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md">
-                    <h4 class="font-bold text-indigo-800">A Note from Dr. UP Sentinel on Location:</h4>
-                    <p class="mt-2 text-sm text-indigo-700">"I've designed the initial setup to require only your district. This immediately provides you with valuable, region-specific health forecasts. However, diseases do not respect district boundaries; they cluster in specific blocks and villages. By optionally adding your Block and Village later in your profile, you upgrade your alerts from a district forecast to a personal, hyper-local warning system. This level of precision saves lives."</p>
+    <div class="container mx-auto p-4 md:p-6 max-w-4xl">
+        
+        <!-- Main Navigation with Dropdown -->
+        <nav class="relative mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                     <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                     <h1 class="text-2xl font-bold text-slate-100">Dashboard</h1>
                 </div>
-
-
-                <div class="mt-8 text-center">
-                    <button type="submit" id="save-btn" class="w-full md:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300">
-                        Save Profile
-                    </button>
-                </div>
-            </form>
-            
-            <div id="success-message" class="mt-6 p-4 bg-green-100 text-green-800 border border-green-200 rounded-lg text-center hidden">
-                Profile data saved successfully!
+                <button id="nav-toggle" class="p-2 bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 z-20">
+                    <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
             </div>
+            <div id="nav-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-lg z-10 border border-slate-700">
+                <a href="dashboard.html" class="block px-4 py-3 text-sm font-semibold bg-slate-700/50 text-white hover:bg-slate-700 rounded-t-lg">Dashboard</a>
+                <a href="index.html" class="block px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-slate-700 rounded-b-lg">Profile</a>
+            </div>
+        </nav>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-slate-400">Analyzing real-time health risks for <span id="loading-user-name">your area</span>...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-xl" role="alert">
+             <span class="block sm:inline" id="error-message">Could not fetch your health assessment.</span>
+        </div>
+
+        <!-- Dashboard Content (hidden by default) -->
+        <main id="dashboard-content" class="hidden space-y-8">
+            
+            <!-- Live Disease Risk Radar -->
+            <section class="bg-slate-800 p-4 sm:p-6 rounded-xl">
+                <h2 class="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                    <span class="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></span>
+                    Live Disease Risk Radar
+                </h2>
+                <div id="risk-radar-container" class="space-y-4">
+                    <!-- Header for larger screens -->
+                    <div class="hidden sm:grid grid-cols-3 gap-4 text-xs font-semibold text-slate-400 uppercase tracking-wider px-3">
+                        <span>Risk Level</span>
+                        <span>Threat</span>
+                        <span>Most Important Action</span>
+                    </div>
+                    <!-- Radar items will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Local Disease Trends -->
+            <section class="bg-slate-800 p-4 sm:p-6 rounded-xl">
+                <h2 class="text-lg font-semibold text-slate-100 mb-4">Local Disease Trends</h2>
+                <p class="text-sm text-slate-400 mb-4">Case trends for major diseases in <span id="user-district" class="font-semibold text-blue-400">your area</span> over the last 15 days.</p>
+                <div class="h-64">
+                    <canvas id="diseaseTrendChart"></canvas>
+                </div>
+            </section>
+            
+            <!-- Nearby Hospital Locator -->
+            <section class="bg-slate-800 p-4 sm:p-6 rounded-xl">
+                 <h2 class="text-lg font-semibold text-slate-100 mb-4">Nearby Hospital Locator</h2>
+                 <button class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-blue-500 transition-colors">
+                     Refresh Location & Find Hospitals
+                 </button>
+            </section>
+        
         </main>
+        
     </div>
 
     <script>
-        const profileForm = document.getElementById('user-profile-form');
-        const saveBtn = document.getElementById('save-btn');
-        const successMessage = document.getElementById('success-message');
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Navigation Toggle ---
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu = document.getElementById('nav-menu');
 
-        profileForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Show loading state
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            
-            // 1. Collect form data
-            const formData = new FormData(profileForm);
-            
-            const profileData = {
-                core: {
-                    name: formData.get('name'),
-                    dob: formData.get('dob'),
-                    sex: formData.get('sex'),
-                    district: formData.get('district')
-                },
-                lifestyle: {
-                    occupation: formData.get('occupation'),
-                    conditions: formData.getAll('conditions') // Gets all checked conditions
-                }
-            };
+            if (navToggle && navMenu) {
+                navToggle.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent click from bubbling to document
+                    navMenu.classList.toggle('hidden');
+                });
 
-            // In a real application, you would send this to a database.
-            // For now, we'll log it to the console to show it works.
-            console.log("--- Collected User Profile Data ---");
-            console.log(JSON.stringify(profileData, null, 2));
+                // Close menu if clicking outside of it
+                document.addEventListener('click', (event) => {
+                    if (!navMenu.classList.contains('hidden') && !navMenu.contains(event.target) && !navToggle.contains(event.target)) {
+                        navMenu.classList.add('hidden');
+                    }
+                });
+            }
 
-            // Simulate a network request
-            setTimeout(() => {
-                // Restore button and show success message
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Profile';
-                successMessage.classList.remove('hidden');
+            // --- Existing Dashboard Logic ---
+            const userName = localStorage.getItem('sentinelUserName');
+            const district = localStorage.getItem('sentinelUserDistrict');
+            document.getElementById('loading-user-name').textContent = district || 'your area';
 
-                // Hide the message after 3 seconds
-                setTimeout(() => {
-                    successMessage.classList.add('hidden');
-                }, 3000);
-
-            }, 1000);
+            if (!userName) {
+                showError('No user profile found. Please create your profile first.');
+                return;
+            }
+            fetchPrediction(userName);
         });
+
+        async function fetchPrediction(userName) {
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: userName })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+                const data = await response.json();
+                displayDashboard(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        function displayDashboard(data) {
+            const district = localStorage.getItem('sentinelUserDistrict') || 'your area';
+            document.getElementById('user-district').textContent = district;
+
+            populateRiskRadar(data.risk_assessments);
+            renderDiseaseTrendChart(data.disease_trends);
+
+            document.getElementById('dashboard-content').classList.remove('hidden');
+        }
+
+        function populateRiskRadar(risks) {
+            const container = document.getElementById('risk-radar-container');
+            const highPriorityRisks = risks.filter(r => r.level === 'High' || r.level === 'Moderate')
+                                           .sort((a, b) => (a.level === 'High' ? -1 : 1));
+
+            highPriorityRisks.forEach(risk => {
+                const item = document.createElement('div');
+                // Responsive classes: flex for mobile, grid for sm and up
+                item.className = 'flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-4 items-start sm:items-center bg-slate-900/50 p-3 rounded-lg';
+                
+                const levelColors = { 'High': 'text-red-400', 'Moderate': 'text-yellow-400' };
+                const iconPaths = {
+                    'High': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />',
+                    'Moderate': '<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />'
+                };
+
+                // Added labels for mobile view
+                item.innerHTML = `
+                    <div class="flex items-center font-semibold ${levelColors[risk.level]}">
+                        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24">${iconPaths[risk.level]}</svg>
+                        <span>${risk.level}</span>
+                    </div>
+                    <div class="text-slate-200 pl-7 sm:pl-0"><span class="sm:hidden text-xs text-slate-400 uppercase">Threat: </span>${risk.threat}</div>
+                    <div class="text-sm text-slate-300 pl-7 sm:pl-0"><span class="sm:hidden text-xs text-slate-400 uppercase">Action: </span>${risk.action}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderDiseaseTrendChart(trends) {
+            const ctx = document.getElementById('diseaseTrendChart').getContext('2d');
+            const labels = Array.from({length: 15}, (_, i) => `-${14-i}d`);
+            labels[14] = 'Today';
+
+            const colors = ['#38bdf8', '#fbbf24', '#a78bfa', '#f87171', '#4ade80'];
+            const datasets = trends.map((trend, i) => ({
+                label: trend.disease,
+                data: trend.cases,
+                borderColor: colors[i % colors.length],
+                backgroundColor: `${colors[i % colors.length]}33`,
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+            }));
+
+            // Prevent chart from being recreated on resize
+            if (window.myChart instanceof Chart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', boxWidth: 12, padding: 20 } 
+                        } 
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-state');
+            document.getElementById('error-message').textContent = message;
+            errorEl.classList.remove('hidden');
+            document.getElementById('loading-state').classList.add('hidden');
+        }
+
     </script>
+
 </body>
 </html>
-
