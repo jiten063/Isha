@@ -22,6 +22,10 @@
             --tw-ring-color: #3b82f6;
             border-color: #3b82f6;
         }
+        input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .form-section {
             background-color: #1e293b;
             border-color: #334155;
@@ -51,7 +55,8 @@
         <main>
             <!-- Error Message Display -->
             <div id="error-container" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-xl mb-6" role="alert">
-                 <p id="error-text"></p>
+                 <p class="font-semibold">Backend Error</p>
+                 <p class="text-sm" id="error-text"></p>
             </div>
 
             <form id="profile-form" class="space-y-8">
@@ -96,7 +101,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Pre-existing Conditions (पहले से मौजूद बीमारियाँ)</label>
-                            <div id="conditions-container" class="space-y-2 mt-2 p-3 bg-slate-900/50 rounded-lg max-h-32 overflow-y-auto">
+                            <div id="conditions-container" class="space-y-2 mt-2 p-3 bg-slate-900/50 rounded-lg max-h-40 overflow-y-auto">
                                 <!-- Checkboxes will be populated by JS -->
                             </div>
                         </div>
@@ -114,9 +119,9 @@
     </div>
 
     <script>
-       const upDistricts = ["Agra","Aligarh","Ambedkar Nagar","Amethi","Amroha","Auraiya","Ayodhya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bhadohi","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Farrukhabad","Fatehpur","Firozabad","Gautam Buddh Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hapur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Kannauj","Kanpur Dehat","Kanpur Nagar","Kasganj","Kaushambi","Kushinagar","Lakhimpur Kheri","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Prayagraj","Rae Bareli","Rampur","Saharanpur","Sambhal","Sant Kabir Nagar","Shahjahanpur","Shamli","Shravasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"];
-       const occupations = ["Student / छात्र", "Farmer / किसान", "Construction Worker / भवन निर्माण श्रमिक", "Factory Worker / फैक्ट्री कर्मचारी", "Miner / खनिक", "Government Service / सरकारी नौकरी", "Private Service / प्राइवेट नौकरी", "Business Owner / व्यवसायी", "Homemaker / गृहिणी", "Unemployed / बेरोजगार", "Other / अन्य"];
-       const conditions = ["Diabetes", "Hypertension", "Asthma/COPD", "Heart Disease", "Kidney Disease", "Anaemia"];
+       const upDistricts = ["Agra","Aligarh","Ambedkar Nagar","Amethi","Amroha","Auraiya","Ayodhya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bhadohi","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Farrukhabad","Fatehpur","Firozabad","Gautam Buddh Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hapur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Kannauj","Kanpur Dehat","Kanpur Nagar","Kasganj","Kaushambi","Kushinagar","Lakhimpur Kheri","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Prayagraj","Rae Bareli","Rampur","Saharanpur","Sambhal","Sant Kabir Nagar","Shahjahanpur","Shamli","Shravasti","Siddharthnagar","Sitapur","Sonbadra","Sultanpur","Unnao","Varanasi"];
+       const occupations = ["Student / छात्र", "Teacher / शिक्षक", "Farmer / किसान", "Healthcare Worker / स्वास्थ्य कार्यकर्ता", "Police / पुलिस", "Construction Worker / भवन निर्माण श्रमिक", "Factory Worker / फैक्ट्री कर्मचारी", "IT Professional / आईटी पेशेवर", "Retail / Shopkeeper / खुदरा / दुकानदार", "Driver / चालक", "Government Service / सरकारी नौकरी", "Private Service / प्राइवेट नौकरी", "Business Owner / व्यवसायी", "Homemaker / गृहिणी", "Unemployed / बेरोजगार", "Other / अन्य"];
+       const conditions = ["Diabetes", "Hypertension", "Asthma/COPD", "Heart Disease", "Kidney Disease", "Anaemia", "Thyroid Disorder", "Arthritis", "None of the above"];
 
         document.addEventListener('DOMContentLoaded', () => {
             // Populate dropdowns
@@ -141,9 +146,44 @@
             conditions.forEach(c => {
                 const div = document.createElement('div');
                 div.className = "flex items-center";
-                div.innerHTML = `<input id="${c}" name="conditions" type="checkbox" value="${c}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><label for="${c}" class="ml-3 text-sm text-slate-300">${c}</label>`;
+                const conditionId = c.replace(/\s+/g, '-').toLowerCase(); // Create a safe ID
+                div.innerHTML = `<input id="${conditionId}" name="conditions" type="checkbox" value="${c}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 condition-checkbox"><label for="${conditionId}" class="ml-3 text-sm text-slate-300">${c}</label>`;
                 conditionsContainer.appendChild(div);
             });
+
+            // --- Logic for "None of the above" checkbox ---
+            const noneCheckbox = document.getElementById('none-of-the-above');
+            const allConditionCheckboxes = document.querySelectorAll('.condition-checkbox');
+
+            noneCheckbox.addEventListener('change', () => {
+                if (noneCheckbox.checked) {
+                    allConditionCheckboxes.forEach(cb => {
+                        if (cb !== noneCheckbox) {
+                            cb.checked = false;
+                            cb.disabled = true;
+                        }
+                    });
+                } else {
+                    allConditionCheckboxes.forEach(cb => {
+                        cb.disabled = false;
+                    });
+                }
+            });
+
+            allConditionCheckboxes.forEach(cb => {
+                if (cb !== noneCheckbox) {
+                    cb.addEventListener('change', () => {
+                        if (cb.checked) {
+                            noneCheckbox.checked = false;
+                            // Re-enable all checkboxes in case 'None' was previously checked
+                            allConditionCheckboxes.forEach(innerCb => {
+                                innerCb.disabled = false;
+                            });
+                        }
+                    });
+                }
+            });
+
 
             // --- Navigation Toggle ---
             const navToggle = document.getElementById('nav-toggle');
@@ -164,7 +204,6 @@
             document.getElementById('profile-form').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 
-                // Hide previous error messages
                 document.getElementById('error-container').classList.add('hidden');
                 
                 const submitButton = document.getElementById('submit-button');
@@ -179,7 +218,12 @@
                     district: form.district.value
                 };
                 
-                const selectedConditions = Array.from(form.querySelectorAll('input[name="conditions"]:checked')).map(el => el.value);
+                let selectedConditions = Array.from(form.querySelectorAll('input[name="conditions"]:checked')).map(el => el.value);
+                // If "None of the above" is checked, the list should be empty.
+                if (selectedConditions.includes("None of the above")) {
+                    selectedConditions = [];
+                }
+
                 const lifestyleProfile = {
                     occupation: form.occupation.value,
                     conditions: selectedConditions
@@ -193,16 +237,23 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(profileData)
                     });
+                    
                     if (!response.ok) {
-                         const errorData = await response.json();
-                         throw new Error(errorData.message || 'Failed to save profile.');
+                         let errorMessage = `Server responded with status: ${response.status}`;
+                         const contentType = response.headers.get("content-type");
+                         if (contentType && contentType.indexOf("application/json") !== -1) {
+                             const errorData = await response.json();
+                             errorMessage = errorData.message || JSON.stringify(errorData);
+                         } else {
+                             errorMessage = await response.text();
+                         }
+                         throw new Error(errorMessage);
                     }
 
-                    // Save key info to localStorage for the dashboard
                     localStorage.setItem('sentinelUserName', coreProfile.name);
                     localStorage.setItem('sentinelUserDistrict', coreProfile.district);
                     
-                    window.location.href = 'index.html'; // Redirect to new dashboard homepage
+                    window.location.href = 'index.html';
 
                 } catch (error) {
                     showError(error.message);
@@ -215,7 +266,11 @@
         function showError(message) {
             const errorContainer = document.getElementById('error-container');
             const errorText = document.getElementById('error-text');
-            errorText.textContent = `Error: ${message}. Please check your connection or try again. If the problem persists, the backend service may be unavailable.`;
+            if (message.includes("500") || message.includes("Internal Server Error")) {
+                 errorText.textContent = "The backend server crashed. This is likely due to a missing or incorrect Firebase service key in your Vercel Environment Variables. Please check your Vercel project logs and settings.";
+            } else {
+                 errorText.textContent = `An unexpected error occurred: ${message}`;
+            }
             errorContainer.classList.remove('hidden');
         }
     </script>
